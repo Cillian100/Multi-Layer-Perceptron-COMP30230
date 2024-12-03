@@ -1,5 +1,7 @@
 import numpy as np
-import random as rand
+from numpy import random
+from numpy import loadtxt
+import math
 
 class MLP:
     def __init__(self, input_size, hidden_sizes, output_size):
@@ -58,16 +60,57 @@ class MLP:
         return 1 - np.tanh(Z)**2
 
 
+def char_to_int(char):
+    return ord(char) - ord('A')+1
+
 if __name__ == "__main__":
-    val = rand.random()
-    arr = [[0 for x in range(4)] for x in range(500)]
-    if val>0.5:
-        arr[0][0]=1
-    else:
-        arr[0][0]=-1
+    letters = []
+    numbers = []
+    numbers2=[[]]
+    counter=0
+
+    try:
+        with open('data.txt', 'r') as file:
+            for line in file:
+                elements = line.strip().split(',')
+                letters.append(char_to_int(elements[0]))
+                numbers.extend(map(int, elements[1:]))
+                numbers2.append(numbers)
+                numbers=[]
+    except FileNotFoundError:
+        print("poop")
+
+    numbers2=numbers2[1:]
+    vectorInput=np.array(numbers2)
+    vectorOutput=np.array(letters)
+
+    mlp=MLP(16, [10,10], 1)
+
+    for epoch in range(10):
+        outputs = mlp.forward(vectorInput.T)
+        gradients = mlp.backward(vectorInput.T, vectorOutput.T)
 
 
-    print(arr)
+if __name__ == "main":
+    x = random.choice([1, -1], size=(500, 4))
+    arr = []
+    for poop in range(500):
+        arr.append(math.sin(x[poop][0] - x[poop][1] + x[poop][2] - x[poop][3]))
+
+    vectorInput=np.array(x)
+    vectorOutput=np.array(arr)
+    mlp=MLP(4, [5,5], 1)
+
+    for epoch in range(400):
+        outputs = mlp.forward(vectorInput.T)
+        gradients = mlp.backward(vectorInput.T, vectorOutput.T)
+        mlp.update_parameters(gradients, 0.01)
+        loss = np.mean((outputs-vectorOutput.T)**2)
+        print(f"Epoch {epoch+1} - Loss: {loss}")
+
+    test_output = mlp.forward(vectorInput.T)
+    test_loss = np.mean((test_output - vectorOutput.T))
+    print(f"Test Loss: {test_loss}")
 
 if __name__ == "main":
     arr = np.array([[0,0], [1,0], [0,1], [0,0]])
@@ -86,4 +129,3 @@ if __name__ == "main":
     test_output = mlp.forward(arr.T)
     test_loss = np.mean((test_output - arr2.T) ** 2)
     print(f"Test Loss: {test_loss}")
-    print(test_output)
